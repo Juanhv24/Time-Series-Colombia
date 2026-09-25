@@ -1115,6 +1115,11 @@ dependencies = [
     { name = "wrapt" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ipykernel" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "asttokens", specifier = "==3.0.2" },
@@ -1166,6 +1171,9 @@ requires-dist = [
     { name = "wcwidth", specifier = "==0.8.2" },
     { name = "wrapt", specifier = "==2.4.0rc5" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ipykernel", specifier = ">=7.3.0" }]
 
 [[package]]
 name = "tornado"
