@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRM · Pronóstico con bandas de riesgo</title>
+  <meta name="description" content="Pronóstico del promedio mensual de la TRM de Colombia a 12 meses con bandas de riesgo (ARIMA + GARCH) y calculadora de la probabilidad de superar una tasa de referencia.">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/vendor/echarts.min.js" defer></script>
+  <script type="module" src="assets/js/app.js"></script>
+</head>
+<body>
+  <header class="encabezado">
+    <div class="contenedor">
+      <p class="antetitulo">Tasa Representativa del Mercado · Colombia</p>
+      <h1>¿Hasta dónde puede moverse el dólar en los próximos 12 meses?</h1>
+      <p class="entradilla">Pronóstico del promedio mensual de la TRM con bandas de riesgo, estimado con un modelo ARIMA(0,1,1) para la tendencia y un GARCH(1,1) para la volatilidad sobre <strong data-meses>416</strong> meses de datos del Banco de la República.</p>
+      <p class="actualizacion">Datos diarios hasta el <span data-fin-diaria>—</span> · último mes completo: <span data-ultimo-mes>—</span></p>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <p class="estado" id="estado" role="status">Cargando datos…</p>
+
+    <div class="kpis" id="kpis"></div>
+
+    <aside class="lectura">
+      <p><strong>Cómo leerlo.</strong> El valor central del pronóstico no le gana a la caminata aleatoria (repetir el último valor observado): en 120 meses de prueba ninguno de los dos fue significativamente más preciso. La utilidad del modelo está en el tamaño de las bandas, que se amplían cuando el mercado está volátil y cubren los movimientos reales con una frecuencia cercana a la esperada.</p>
+      <p>Por eso el tablero no responde «¿cuánto va a estar el dólar?», sino «¿qué tan probable es que supere la tasa con la que presupuesté?».</p>
+    </aside>
+
+    <figure class="tarjeta" data-grafico="pronostico">
+      <figcaption>
+        <h2>Pronóstico con bandas de riesgo</h2>
+        <p>Promedio mensual de la TRM en pesos por dólar. Las bandas contienen el 50 %, el 80 % y el 95 % de <span data-simulaciones>5.000</span> escenarios simulados con volatilidad GARCH.</p>
+      </figcaption>
+      <div class="barra-herramientas">
+        <fieldset class="segmentado" id="filtro-periodo">
+          <legend>Historia</legend>
+          <label><input type="radio" name="periodo" value="36" checked><span>3 años</span></label>
+          <label><input type="radio" name="periodo" value="120"><span>10 años</span></label>
+          <label><input type="radio" name="periodo" value="0"><span>Desde 1991</span></label>
+        </fieldset>
+        <label class="casilla"><input type="checkbox" id="mostrar-constante"> Comparar con el intervalo de varianza constante</label>
+      </div>
+      <div class="leyenda" data-leyenda="pronostico"></div>
+      <div class="lienzo alto"></div>
+    </figure>
+
+    <section class="tarjeta calculadora" aria-labelledby="titulo-calculadora">
+      <div class="calc-entrada">
+        <h2 id="titulo-calculadora">Calculadora de riesgo cambiario</h2>
+        <p class="calc-intro">¿Qué tan probable es que el promedio mensual de la TRM quede por encima o por debajo de una tasa de referencia, como la de un presupuesto o un contrato?</p>
+        <form class="calc-controles" id="calculadora" autocomplete="off">
+          <fieldset class="segmentado">
+            <legend>Probabilidad de que la TRM</legend>
+            <label><input type="radio" name="sentido" value="supere" checked><span>supere</span></label>
+            <label><input type="radio" name="sentido" value="debajo"><span>quede por debajo de</span></label>
+          </fieldset>
+          <label class="campo">Tasa de referencia (COP/USD)
+            <input type="number" id="umbral" inputmode="numeric" min="1000" max="10000" step="50" value="3500" required>
+          </label>
+          <label class="campo">En el mes de
+            <select id="mes"></select>
+          </label>
+        </form>
+        <div class="calc-resultado" aria-live="polite">
+          <p class="calc-probabilidad" id="calc-probabilidad">—</p>
+          <p class="calc-frase" id="calc-frase"></p>
+          <p class="calc-contexto" id="calc-contexto"></p>
+        </div>
+      </div>
+      <figure class="calc-grafico" data-grafico="probabilidad">
+        <figcaption>
+          <h3>La misma probabilidad mes a mes</h3>
+          <p data-subtitulo>El riesgo crece con el horizonte, porque la incertidumbre se acumula.</p>
+        </figcaption>
+        <div class="lienzo"></div>
+      </figure>
+    </section>
+
+    <div class="rejilla">
+      <figure class="tarjeta" data-grafico="volatilidad">
+        <figcaption>
+          <h2>Volatilidad del mercado cambiario</h2>
+          <p>Desviación estándar condicional del log-retorno mensual estimada por el GARCH(1,1), frente a la volatilidad constante que supone un ARIMA sin GARCH.</p>
+        </figcaption>
+        <div class="leyenda" data-leyenda="volatilidad"></div>
+        <div class="lienzo"></div>
+      </figure>
+
+      <figure class="tarjeta" data-grafico="confiabilidad">
+        <figcaption>
+          <h2>¿Qué tan confiable ha sido?</h2>
+          <p>Pronósticos a un paso con parámetros estimados hasta <span data-fin-estimacion>julio de 2016</span>, frente a la TRM observada. Los puntos marcan los meses que quedaron fuera de la banda del 95 %.</p>
+        </figcaption>
+        <div class="leyenda" data-leyenda="confiabilidad"></div>
+        <div class="lienzo"></div>
+      </figure>
+    </div>
+
+    <section class="tarjeta evaluacion" aria-labelledby="titulo-evaluacion">
+      <h2 id="titulo-evaluacion">Evaluación frente a la caminata aleatoria</h2>
+      <div class="evaluacion-tablas">
+        <div>
+          <h3>Error del pronóstico a un paso</h3>
+          <div class="tabla-envoltura" id="tabla-metricas"></div>
+          <p class="nota-tabla" id="nota-dm"></p>
+        </div>
+        <div>
+          <h3>Meses por fuera de la banda</h3>
+          <div class="tabla-envoltura" id="tabla-calibracion"></div>
+          <p class="nota-tabla">Una banda bien calibrada deja por fuera una proporción cercana a la esperada. Con varianza constante las bandas son demasiado angostas en los períodos volátiles.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="texto" id="metodologia" aria-labelledby="titulo-metodologia">
+      <h2 id="titulo-metodologia">Cómo se construyó</h2>
+      <p><strong>Qué se pronostica.</strong> El promedio mensual de la TRM, no la tasa de un día específico. Se usan solo meses con todos sus días, de modo que la serie va de <span data-primer-mes>diciembre de 1991</span> a <span data-ultimo-mes-texto>julio de 2026</span>.</p>
+      <p><strong>Modelo.</strong> Un ARIMA(0,1,1) con deriva describe la tendencia del logaritmo de la TRM mensual. Su término de media móvil refleja que la TRM es un promedio de las operaciones del día y que la serie mensual añade un segundo promediado (Working, 1960). Un GARCH(1,1) con innovaciones t de Student modela la volatilidad, que cambia en el tiempo y tiene colas pesadas (Bollerslev, 1986). Las bandas y las probabilidades salen de <span data-simulaciones>5.000</span> trayectorias simuladas con una semilla fija.</p>
+      <p><strong>Qué tan confiable es.</strong> Como es habitual en las tasas de cambio, el valor central no supera a la caminata aleatoria (Meese &amp; Rogoff, 1983). La autocorrelación que explota el modelo se debilitó en la última década, y el pronóstico supone una depreciación mensual promedio que no siempre ocurre, como en la apreciación del peso entre 2025 y 2026. Lo que sí mejora es la calibración de las bandas.</p>
+      <p><strong>Limitaciones.</strong> La media y la volatilidad se estiman en dos etapas, de modo que la incertidumbre de los parámetros no entra en las bandas, que pueden quedar algo angostas. La calibración se verificó a un mes; a horizontes más largos las probabilidades dependen de que la persistencia de la volatilidad se mantenga. El tablero es un ejercicio académico y no una recomendación financiera.</p>
+      <p><strong>Detalle y código.</strong> El análisis completo está en los notebooks del <a href="https://github.com/Juanhv24/Time-Series-Colombia">repositorio del proyecto</a>: <a href="https://github.com/Juanhv24/Time-Series-Colombia/blob/main/notebooks/01_exploracion_serie_diaria.ipynb">exploración de la serie diaria</a>, <a href="https://github.com/Juanhv24/Time-Series-Colombia/blob/main/notebooks/02_modelado_mensual.ipynb">modelado mensual</a> y <a href="https://github.com/Juanhv24/Time-Series-Colombia/blob/main/notebooks/03_pronostico.ipynb">pronóstico</a>. Los datos del tablero se regeneran con <code>uv run trm sitio</code>.</p>
+      <h2>Referencias</h2>
+      <ul class="referencias">
+        <li>Banco de la República. (2026). <em>Tasa Representativa del Mercado (TRM). Serie diaria 1991-2026</em> [Conjunto de datos]. Portal de Estadísticas Económicas. <a href="https://suameca.banrep.gov.co/estadisticas-economicas/">https://suameca.banrep.gov.co/estadisticas-economicas/</a></li>
+        <li>Bollerslev, T. (1986). Generalized autoregressive conditional heteroskedasticity. <em>Journal of Econometrics, 31</em>(3), 307–327.</li>
+        <li>Meese, R. A., &amp; Rogoff, K. (1983). Empirical exchange rate models of the seventies: Do they fit out of sample? <em>Journal of International Economics, 14</em>(1–2), 3–24.</li>
+        <li>Working, H. (1960). Note on the correlation of first differences of averages in a random chain. <em>Econometrica, 28</em>(4), 916–918.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="contenedor pie">
+    <p>Juan Daniel Hernández Vargas · <a href="https://juanhv24.github.io/">Portafolio</a> · Datos del Banco de la República · Generado el <span data-generado>—</span></p>
+  </footer>
+</body>
+</html>
